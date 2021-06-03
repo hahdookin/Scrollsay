@@ -1,8 +1,8 @@
 #include <iostream>
 #include <sstream>
-#include <string>
 #include <fstream>
-#include <vector>
+#include <string>
+#include <list>
 
 #include <unistd.h>
 
@@ -39,7 +39,7 @@ string padding(int cur, int max)
     return repeat(' ', spaces);
 }
 
-void drawScrollS(vector<string>& lines, int maxLen)
+void drawScrollS(list<string>& lines, int maxLen)
 {
     string word;
 
@@ -64,10 +64,10 @@ void drawScrollS(vector<string>& lines, int maxLen)
             
 // Takes input from a stream and makes a vector
 // of lines less than a max length of chars
-vector<string> dataIntoVector(istream& in, int maxLen)
+list<string> dataIntoList(istream& in, int maxLen)
 {
-    vector<string> res;
-    string word = "";
+    list<string> res;
+    string word;
     string str = "";
     while (in >> word)
     {
@@ -95,39 +95,97 @@ vector<string> dataIntoVector(istream& in, int maxLen)
     return res;
 }
 
+void applySignature(list<string>& data, string signature, int maxLen)
+{
+    string close_sal = "Sincerely,";
+    string pad_before_sal;
+    string pad_after_sal;
+    if (signature.size() > close_sal.size())
+    {
+        pad_before_sal = padding(signature.size(), maxLen);
+        pad_after_sal = padding(pad_before_sal.size() + close_sal.size(), maxLen);
+    }
+    else
+    {
+        pad_before_sal = padding(close_sal.size(), maxLen);
+        pad_after_sal = "";
+    }
+    data.push_back(padding(0, maxLen));
+    data.push_back(pad_before_sal + close_sal + pad_after_sal);
+    data.push_back(padding(signature.size(), maxLen) + signature);
+}
+
+void applyI(list<string>& data, int maxLen)
+{
+    string formal_sal = "I hereby decree,";
+    data.push_front(padding(0, maxLen));
+    data.push_front(formal_sal + padding(formal_sal.size(), maxLen));
+}
+
+void usage()
+{
+    string tab = repeat(' ', 2);
+    cout << "Usage: scrollsay [options] [FILE]" << endl;
+    cout << endl;
+    cout << "If FILE couldn't be opened, treats FILE as text literal." << endl;
+    cout << "If FILE is not provided, tries to read from stdin." << endl;
+    cout << endl;
+    cout << "Options:" << endl;
+    cout << tab << "-w <width>      Set max text width" << endl;
+    cout << tab << "-i              You said it" << endl;
+    cout << tab << "-s <signature>  Sign a name at the bottom" << endl;
+    cout << tab << "-h              Print this message" << endl;
+    cout << endl;
+}
+
 // main [options] [<file>]
 // main [options] [<text>]
 int main(int argc, char** argv)
 {
     // Flags and values
     int maxLen = 32;
-    bool meFlag = false;
-    bool sigFlag = false;
-    string sig = "";
+    bool iFlag = false;
+    bool sFlag = false;
+    string signature = "";
+
+    /*if (argc == 1)
+    {
+        usage();
+        return 0;
+    }*/
 
     // Get options
     int opt;
-    while ((opt = getopt(argc, argv, ":w:s:i")) != -1)
+    while ((opt = getopt(argc, argv, ":w:s:ih")) != -1)
     {
         switch (opt)
         {
             case 'w':
-                maxLen = stoi(optarg);
+                try {
+                    maxLen = stoi(optarg);
+                } catch (invalid_argument e) {
+                    cerr << "Invalid argument for -w: " << optarg << endl;
+                    return 1;
+                }
                 break;
             case 'i':
-                meFlag = true;
+                iFlag = true;
                 break;
             case 's':
-                sigFlag = true;
-                sig = optarg;
+                sFlag = true;
+                signature = optarg;
                 break;
+            case 'h':
+                usage();
+                return 0;
         }
     }
 
     istream* in;
+    istringstream str;
     ifstream file;
     string filename;
-    vector<string> data;
+    list<string> data;
 
     if (optind < argc)
     {
@@ -137,7 +195,7 @@ int main(int argc, char** argv)
         if (!file)
         {
             // Treat as plain text
-            istringstream str(filename);
+            str = istringstream(filename);
             in = &str;
         }
         else
@@ -150,9 +208,14 @@ int main(int argc, char** argv)
     {
         // Something from stdin
         in = &cin;
-        cout << "Done reading" << endl;
     }
-    data = dataIntoVector(*in, maxLen);
+
+    data = dataIntoList(*in, maxLen);
+
+    // apply some options: i, s
+    if (iFlag) applyI(data, maxLen);
+    if (sFlag) applySignature(data, signature, maxLen);
+
     drawScrollS(data, maxLen);
 
     return 0;

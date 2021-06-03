@@ -16,10 +16,53 @@ Input from a file:
 
 `scrollsay -i -w 30 input.txt`
 
+```
+ .-.-------------------------------.-.
+((o))                                 )
+ \U/_______          _____        ___/
+   |                                |
+   | I hereby decree,               |
+   |                                |
+   | A failure to plan is a plan    |
+   | to fail.                       |
+   |____    _______    __  ____   __|
+  /A\                                \
+ ((o))                                )
+  '-'--------------------------------'
+```
+
 Passing in a string:
 
 `scrollsay -s hahdookin 'Here is some text!'`
 
+```
+ .-.---------------------------------.-.
+((o))                                   )
+ \U/_______          _____         ____/
+   |                                  |
+   | Here is some text!               |
+   |                                  |
+   |                       Sincerely, |
+   |                        hahdookin |
+   |____    _______    __  ____    ___|
+  /A\                                  \
+ ((o))                                  )
+  '-'----------------------------------'
+```
+
 Pipe in output from another command:
 
 `fortune | scrollsay`
+
+```
+ .-.---------------------------------.-.
+((o))                                   )
+ \U/_______          _____         ____/
+   |                                  |
+   | Decaffeinated coffee? Just Say   |
+   | No.                              |
+   |____    _______    __  ____    ___|
+  /A\                                  \
+ ((o))                                  )
+  '-'----------------------------------'
+```
