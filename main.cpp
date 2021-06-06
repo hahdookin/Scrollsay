@@ -8,6 +8,14 @@
 
 using namespace std;
 
+enum Align
+{
+    Left,
+    Right,
+    Center,
+    Justify,
+};
+
 //" \U/_______          _____         ____/"
 string topbar(int n)
 {
@@ -147,6 +155,8 @@ int main(int argc, char** argv)
     bool iFlag = false;
     bool sFlag = false;
     string signature = "";
+    bool aFlag = false;
+    Align align = Left;
 
     /*if (argc == 1)
     {
@@ -156,7 +166,7 @@ int main(int argc, char** argv)
 
     // Get options
     int opt;
-    while ((opt = getopt(argc, argv, ":w:s:ih")) != -1)
+    while ((opt = getopt(argc, argv, ":w:s:a:ih")) != -1)
     {
         switch (opt)
         {
@@ -168,13 +178,34 @@ int main(int argc, char** argv)
                     return 1;
                 }
                 break;
+
             case 'i':
                 iFlag = true;
                 break;
+
             case 's':
                 sFlag = true;
                 signature = optarg;
                 break;
+
+            case 'a':
+                switch (optarg[0])
+                {
+                    case 'l':
+                        align = Left;
+                        break;
+                    case 'r':
+                        align = Right;
+                        break;
+                    case 'c':
+                        align = Center;
+                        break;
+                    case 'j':
+                        align = Justify;
+                        break;
+                }
+                break;
+
             case 'h':
                 usage();
                 return 0;
