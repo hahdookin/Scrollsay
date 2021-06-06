@@ -69,10 +69,13 @@ void drawScrollS(list<string>& lines, int maxLen)
     cout << " ((o))" << repeat(' ', maxLen-1) << "   )" << endl;
     cout << "  '-'" << repeat('-', maxLen) << "--'" << endl;
 }
+
+
+string applyAlignment(string& line, Align align, int maxLen, bool lastLine = false);
             
 // Takes input from a stream and makes a vector
 // of lines less than a max length of chars
-list<string> dataIntoList(istream& in, int maxLen)
+list<string> dataIntoList(istream& in, int maxLen, Align align)
 {
     list<string> res;
     string word;
@@ -85,8 +88,7 @@ list<string> dataIntoList(istream& in, int maxLen)
         }
         else
         {
-            string pad = padding(str.size(), maxLen);
-            res.push_back(str + pad);
+            res.push_back(applyAlignment(str, align, maxLen));
             if (word.size() > maxLen)
             {
                 while (word.size() > maxLen)
@@ -99,10 +101,66 @@ list<string> dataIntoList(istream& in, int maxLen)
             if (str.size() < maxLen) str += " ";
         }
     }
-    res.push_back(str + padding(str.size(), maxLen));
+    res.push_back(applyAlignment(str, align, maxLen, true));
     return res;
 }
 
+string applyAlignment(string& line, Align align, int maxLen, bool lastLine)
+{
+    string pad = padding(line.size(), maxLen);
+    if (align == Left)  return line + pad;
+    if (align == Right) return pad + line;
+    if (align == Center)
+    {
+        string beg = pad.substr(0, pad.size() / 2);
+        string end = pad.substr(pad.size() / 2);
+        return beg + line + end;
+    }
+    // TODO: Make this work!
+    if (align == Justify) 
+    {
+        // Line is already justified!
+        if (line.size() == maxLen || lastLine)
+            return line + pad;
+
+        // Grab # of spaces and amount needed
+        int spaces = 0;
+        int spacesNeeded = maxLen - line.size();
+        for (int i = 0; i < line.size(); i++) if (line[i] == ' ') spaces++;
+
+        int x = spaces + spacesNeeded;
+        string res = "";
+        for (int i = 0; i < line.size(); i++)
+        {
+            if (line[i] == ' ' && x > 0)
+            {
+                res += repeat(' ', (x / spaces) + 1);
+                x -= x / spaces + 1;
+            }
+            else res += line[i];
+        }
+        return res;
+        // Hello there whats up_-_-_| size: 1, spaces: 3, needed: 5
+        // Hello_-_there_-_whats_-up| size: 3, spaces: 8, needed: 0
+        //
+        // x = (spaces + needed) -> x %= 3 -> x = x % 3 -> x -= x % 3
+        //
+        // hey there all you beautiful_-_-| size: 1, spaces: 4, needed: 4
+        // hey_-there_-all_-you_-beautiful| size: 2, spaces: 8, needed: 0
+        //
+        // yo yo yo_-_-_-| size: 1, spaces: 2, needed: 6
+        // yo_-_-yo_-_-yo| size: 4, spaces: 8, needed: 0
+        //
+        // hey there_| size: 1, spaces: 1, needed: 1
+        // hey_-there| size: 2, spaces: 2, 
+
+    }
+    return line;
+
+}
+
+// Adds the closest saluation and the name signature
+// to the END of the list.
 void applySignature(list<string>& data, string signature, int maxLen)
 {
     string close_sal = "Sincerely,";
@@ -123,6 +181,7 @@ void applySignature(list<string>& data, string signature, int maxLen)
     data.push_back(padding(signature.size(), maxLen) + signature);
 }
 
+// Adds a formal saluation to the BEGINNING of the list
 void applyI(list<string>& data, int maxLen)
 {
     string formal_sal = "I hereby decree,";
@@ -130,6 +189,7 @@ void applyI(list<string>& data, int maxLen)
     data.push_front(formal_sal + padding(formal_sal.size(), maxLen));
 }
 
+// Prints help message to the console
 void usage()
 {
     string tab = repeat(' ', 2);
@@ -142,12 +202,13 @@ void usage()
     cout << tab << "-w <width>      Set max text width" << endl;
     cout << tab << "-i              You said it" << endl;
     cout << tab << "-s <signature>  Sign a name at the bottom" << endl;
+    cout << tab << "-a <alignment>  Set how the text is alligned" << endl;
+    cout << tab << "                eg: left, right, center, justify" << endl;
     cout << tab << "-h              Print this message" << endl;
     cout << endl;
 }
 
-// main [options] [<file>]
-// main [options] [<text>]
+// scrollsay [options] [FILE]
 int main(int argc, char** argv)
 {
     // Flags and values
@@ -157,12 +218,6 @@ int main(int argc, char** argv)
     string signature = "";
     bool aFlag = false;
     Align align = Left;
-
-    /*if (argc == 1)
-    {
-        usage();
-        return 0;
-    }*/
 
     // Get options
     int opt;
@@ -241,11 +296,15 @@ int main(int argc, char** argv)
         in = &cin;
     }
 
-    data = dataIntoList(*in, maxLen);
+    data = dataIntoList(*in, maxLen, align);
 
     // apply some options: i, s
     if (iFlag) applyI(data, maxLen);
     if (sFlag) applySignature(data, signature, maxLen);
+
+    // Used for testing justified alignment
+    //for (string& line : data) cout << applyAlignment(line, align, maxLen) << "|" << endl;
+    //return 0;
 
     drawScrollS(data, maxLen);
 
